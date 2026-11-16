@@ -23,7 +23,7 @@ app.post('/auth/request-verification', async (req, res) => {
 
     const otp = generateOTP();
     storeOTP(email, otp);
-    await emailQueue.add('otp', { to: email, otp });
+    await emailQueue.add('otp', { email, otp });
 
     res.json({ message: 'Verification email sent. Check your inbox for the OTP.' });
   } catch (err) {
