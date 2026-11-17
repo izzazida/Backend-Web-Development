@@ -14,26 +14,24 @@ const FEED_TTL = 60;
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-// GET /feed — cache-aside pattern
 app.get('/feed', async (req, res) => {
   try {
+    const t0 = Date.now();
+
     const cachedPosts = await cacheGet(FEED_KEY);
 
-    // Cache HIT
     if (cachedPosts !== null && cachedPosts !== undefined) {
       res.set('X-Cache', 'HIT');
-      console.log('[feed] Cache HIT');
+      console.log(`[feed] HIT ${Date.now() - t0}ms`);
       return res.json(cachedPosts);
     }
 
-    // Cache MISS — fetch from database
-    const t0 = Date.now();
     const posts = await db.getTrendingPosts();
 
     await cacheSet(FEED_KEY, posts, FEED_TTL);
 
     res.set('X-Cache', 'MISS');
-    console.log(`[feed] Cache MISS — DB ${Date.now() - t0}ms`);
+    console.log(`[feed] MISS ${Date.now() - t0}ms`);
 
     return res.json(posts);
 
